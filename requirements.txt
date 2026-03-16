@@ -33,3 +33,4 @@ typing_extensions==4.15.0
 uvicorn==0.36.0
 python-dotenv>=1,<2 
 pymongo==4.15.3
+bcrypt==5.0.0
