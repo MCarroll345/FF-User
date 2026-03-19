@@ -1,9 +1,14 @@
-from dotenv import dotenv_values
+from dotenv import load_dotenv
 from pymongo.mongo_client import MongoClient
 from pymongo.server_api import ServerApi
+import os
 
-config = dotenv_values(".env")
+load_dotenv()
 
-client = MongoClient(config["ATLAS_URI"], server_api=ServerApi('1'))
+client = MongoClient(os.getenv("MONGO_URI"), server_api=ServerApi('1'))
 db = client.user_profiles
-collection = db["users"]
+
+userdb = db["users"]
+user_likedb = db["user_likes"]
+
+
