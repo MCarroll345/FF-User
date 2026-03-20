@@ -1,13 +1,13 @@
 from fastapi import FastAPI, APIRouter, Body, Request, Response, HTTPException, status
 from dotenv import dotenv_values
-from .models import User, LoginUser, all_users, Likes, likes_get, all_likes
+from .models import User, LoginUser, all_users, Likes, likes_get, all_likes, individual_data
 from .config import user_likedb, userdb
+from bson import ObjectId
 import bcrypt
-
-encrypt = bcrypt.gensalt()
 
 app = FastAPI()
 router = APIRouter()
+encrypt = bcrypt.gensalt()
 
 @router.get("/users")
 async def get_all_users():
@@ -21,22 +21,35 @@ async def get_all_users():
 async def create_user(new_user: User):
     try:
         enc_user = new_user.dict()
-        enc_user["password"] = bcrypt.hashpw(b'enc_user["password"]', encrypt)
+        enc_user["password"] = bcrypt.hashpw(new_user.password.encode(encoding="utf-8"), encrypt)
         resp = userdb.insert_one(dict(enc_user))
         return {"status_code": 200, "id": str(resp.inserted_id)}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error occurred: {e}")
+
+@router.get("/users/{user_id}")
+async def get_user(user_id: str):
+    try:
+        data = userdb.find_one({"_id": ObjectId(user_id)})
+        if not data:
+            raise HTTPException(status_code=404, detail="User not found")
+        return individual_data(data)
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error occurred: {e}")
 
 @router.post("/login")
 async def login_user(user: LoginUser):
     try:
-        enc_user = user.dict()
-        doc = userdb.find_one({"email": enc_user["email"]})
-        if not doc:
+        data = userdb.find_one({"email": user.email})
+        if not data:
             raise HTTPException(status_code=404, detail="User not found")
-        if not bcrypt.checkpw(b'enc_user["password"]', doc["password"]):
+        if not bcrypt.checkpw(user.password.encode(encoding="utf-8"), data["password"]):
             raise HTTPException(status_code=401, detail="Invalid credentials")
-        return {"status_code": 200, "id": str(doc["_id"])}
+        return individual_data(data)
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error occurred: {e}")
     

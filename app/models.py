@@ -13,7 +13,7 @@ class LoginUser(BaseModel):
     password:str
 
 class Likes(BaseModel):
-    id: str
+    uid: str
     item_id1: Optional[str] = None
     item_id2: Optional[str] = None
     item_id3: Optional[str] = None
@@ -30,7 +30,8 @@ def individual_data(user):
 
 def likes_get(like):
     return{
-        "uid": str(like["_id"]),
+        "id": str(like["_id"]),
+        "uid": str(like["uid"]),
         "item_id1": like["item_id1"],
         "item_id2": like["item_id2"],
         "item_id3": like["item_id3"],
