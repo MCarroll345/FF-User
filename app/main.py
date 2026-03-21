@@ -23,7 +23,7 @@ async def create_user(new_user: User):
         enc_user = new_user.dict()
         enc_user["password"] = bcrypt.hashpw(new_user.password.encode(encoding="utf-8"), encrypt)
         resp = userdb.insert_one(dict(enc_user))
-        return {"status_code": 200, "id": str(resp.inserted_id)}
+        return individual_data(userdb.find_one({"_id": resp.inserted_id}))
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error occurred: {e}")
 
@@ -62,7 +62,7 @@ async def make_like(likes: Likes):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error occurred: {e}")
     
-@router.get("/{uid}/likes")
+@router.get("/likes/{uid}")
 async def get_likes(uid: str):
     try:
         data = list(user_likedb.find({"uid": uid}))
