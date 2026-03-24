@@ -1,6 +1,6 @@
 from fastapi import FastAPI, APIRouter, Body, Request, Response, HTTPException, status
 from dotenv import dotenv_values
-from .models import User, LoginUser, all_users, Likes, likes_get, all_likes, individual_data
+from .models import User, LoginUser, all_users, Likes, likes_get, all_likes, individual_data, UserUpdate
 from .config import user_likedb, userdb
 from bson import ObjectId
 import bcrypt
@@ -24,6 +24,7 @@ async def create_user(new_user: User):
         enc_user["password"] = bcrypt.hashpw(new_user.password.encode(encoding="utf-8"), encrypt)
         resp = userdb.insert_one(dict(enc_user))
         return individual_data(userdb.find_one({"_id": resp.inserted_id}))
+        
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error occurred: {e}")
 
@@ -38,6 +39,18 @@ async def get_user(user_id: str):
         raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error occurred: {e}")
+
+@router.put("/users/{user_id}")
+def update_user(user_id: str, payload: UserUpdate):
+    upuser = userdb.find_one({"_id": ObjectId(user_id)})
+    if not upuser:
+        raise HTTPException(status_code=404, detail="User not found")
+    updated = userdb.find_one_and_update(
+        {"_id": ObjectId(user_id)},
+        {"$set": payload.dict(exclude_unset=True)},
+        return_document=True
+    )
+    return individual_data(updated)
 
 @router.post("/login")
 async def login_user(user: LoginUser):

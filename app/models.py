@@ -3,10 +3,10 @@ from pydantic import BaseModel, EmailStr, constr, conint
 from typing import Optional
 
 class User(BaseModel):
-    email:str
-    password:str
-    first_name:str
-    last_name:str
+    email: str
+    password: constr(min_length=8)
+    first_name: str
+    last_name: str
 
 class LoginUser(BaseModel):
     email:str
@@ -18,6 +18,11 @@ class Likes(BaseModel):
     item_id2: Optional[str] = None
     item_id3: Optional[str] = None
     item_id4: Optional[str] = None
+
+class UserUpdate(BaseModel):
+    email: Optional[str] = None
+    first_name: Optional[str] = None
+    last_name: Optional[str] = None
 
 def individual_data(user):
     return{
