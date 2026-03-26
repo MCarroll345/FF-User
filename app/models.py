@@ -19,6 +19,10 @@ class Likes(BaseModel):
     item_id3: Optional[str] = None
     item_id4: Optional[str] = None
 
+class uploadImage(BaseModel):
+    uid: str
+    base64: str
+
 class UserUpdate(BaseModel):
     email: Optional[str] = None
     first_name: Optional[str] = None

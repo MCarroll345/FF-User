@@ -7,8 +7,10 @@ load_dotenv()
 
 client = MongoClient(os.getenv("MONGO_URI"), server_api=ServerApi('1'))
 udb = client.user_profiles
+cdb = client.clothes
 
 userdb = udb["users"]
 user_likedb = udb["user_likes"]
+user_imgdb = udb["user_images"]
 
 
