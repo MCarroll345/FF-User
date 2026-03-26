@@ -2,15 +2,15 @@ from fastapi import FastAPI, APIRouter, Body, Request, Response, HTTPException, 
 from fastapi.responses import FileResponse
 from ..models import Likes, uploadImage
 from ..config import userdb, cdb, user_imgdb
-from PIL import Image
-from io import BytesIO
 import requests
-from openai import OpenAI
 import base64
 from bson import ObjectId
 import os
+import vertexai
+from vertexai.preview.vision_models import ImageGenerationModel, Image as VertexImage
 
-client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+vertexai.init(project="fitfinder-491412", location="us-central1")
+model = ImageGenerationModel.from_pretrained("imagen-3.0-generate-002")
 grouter = APIRouter()
 
 @grouter.post("/{uid}/upload")
@@ -33,24 +33,22 @@ async def generate_img(likes: Likes):
                 item = cdb[cloth].find_one({"_id": ObjectId(item_id)})
                 if item:
                     item_urls.append({"id": item_id, "url": item["img_url"]})
-        image_files = img_return(item_urls)
-        if userIMG:
-            image_files.insert(0, ("user.webp", BytesIO(base64.b64decode(userIMG["base64"])), "image/webp"))
-        result = client.images.edit(
-            model="gpt-image-1",
-            prompt="Generate an image of the person in user.webp wearing all of these clothing items together as an outfit. Focus on making the person look as much like their reference photo as possible. NEVER change the face",
-            image=image_files
+        clothing_images = img_return(item_urls)
+        prompt = "Dress the person in all of the provided clothing items together as a complete outfit. Keep the person's face, body, and likeness exactly the same."
+        if not userIMG:
+            raise HTTPException(status_code=400, detail="No user image found")
+        user_image = VertexImage(image_bytes=base64.b64decode(userIMG["base64"]))
+        images = model.edit_image(
+            base_image=user_image,
+            prompt=prompt,
+            reference_images=clothing_images,
+            number_of_images=1,
+            safety_filter_level="block_some",
+            person_generation="allow_adult",
         )
-        image_base64 = result.data[0].b64_json
-
-        image_bytes = base64.b64decode(image_base64)
-        return Response(content=image_bytes, media_type="image/png")
+        return Response(content=images[0]._image_bytes, media_type="image/png")
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error generating image: {e}")
 
 def img_return(item_urls):
-    files = []
-    for item in item_urls:
-        img_bytes = BytesIO(requests.get(item["url"]).content)
-        files.append((f"{item['id']}.png", img_bytes, "image/png"))
-    return files
+    return [VertexImage(image_bytes=requests.get(item["url"]).content) for item in item_urls]
