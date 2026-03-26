@@ -1,4 +1,4 @@
-# syntax=docker/dockerfile:1
+#syntax=docker/dockerfile:1
 FROM python:3.11-slim AS builder
 
 WORKDIR /app
@@ -17,3 +17,5 @@ COPY .env.docker .env
 USER appuser
 EXPOSE 8003
 CMD ["uvicorn", "app.main:app", "--host=0.0.0.0", "--port=8003"]
+
+#docker build -t mcarroll321/ff-user --push .

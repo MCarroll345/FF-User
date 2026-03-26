@@ -8,3 +8,5 @@ run:
 	python -m uvicorn $(APP) --host 0.0.0.0 --port 8003 --reload
 test:
 	python -m pytest -q
+
+# python -m uvicorn app.main:app --host 0.0.0.0 --port 8003 --reload
