@@ -1,4 +1,4 @@
-from fastapi import FastAPI, APIRouter, Body, Request, Response, HTTPException, status, File, UploadFile
+                                                                             from fastapi import FastAPI, APIRouter, Body, Request, Response, HTTPException, status, File, UploadFile
 from fastapi.responses import FileResponse
 from ..models import Likes, uploadImage
 from ..config import userdb, cdb, user_imgdb
@@ -21,6 +21,14 @@ async def upload_image(uid: str, file: UploadFile):
         return {"status": "Image uploaded successfully"}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error uploading image: {e}")
+
+@grouter.post("/{uid}/upload")
+async def del_user_img(uid: str):
+    try:
+        user_imgdb.delete_one_one({"uid": uid})
+        return {"status": "Image delete successfully"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error deleting image: {e}")
 
 @grouter.post("/generate")
 async def generate_img(likes: Likes):

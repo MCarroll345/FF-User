@@ -65,6 +65,18 @@ async def login_user(user: LoginUser):
         raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error occurred: {e}")
+
+@urouter.post("/delete/{user_id}")
+async def delete_profile(user_id: str):
+    try:
+        deluser = userdb.find_one({"_id": ObjectId(user_id)})
+        if not deluser:
+            raise HTTPException(status_code=404, detail="User not found")
+        resp = userdb.delete_one(deluser)
+        return resp
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error occurred: {e}")
+
     
 @urouter.post("/likes")
 async def make_like(likes: Likes):
