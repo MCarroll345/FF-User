@@ -1,7 +1,7 @@
 from fastapi import FastAPI, APIRouter, Body, Request, Response, HTTPException, status
 from fastapi.responses import FileResponse
 from dotenv import dotenv_values
-from ..models import User, LoginUser, all_users, Likes, likes_get, all_likes, individual_data, UserUpdate
+from ..models import User, LoginUser, all_users, Likes, likes_get, all_likes, individual_data, UserUpdate, user_data
 from ..config import user_likedb, userdb, user_imgdb
 from bson import ObjectId
 import bcrypt
@@ -38,7 +38,7 @@ async def get_user(user_id: str):
             img_status = True
         else:
             img_status = False
-        return individual_data(data, img_status)
+        return user_data(data, img_status)
     except HTTPException:
         raise
     except Exception as e:
