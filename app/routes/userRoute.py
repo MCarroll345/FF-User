@@ -2,7 +2,7 @@ from fastapi import FastAPI, APIRouter, Body, Request, Response, HTTPException, 
 from fastapi.responses import FileResponse
 from dotenv import dotenv_values
 from ..models import User, LoginUser, all_users, Likes, likes_get, all_likes, individual_data, UserUpdate
-from ..config import user_likedb, userdb
+from ..config import user_likedb, userdb, user_imgdb
 from bson import ObjectId
 import bcrypt
 
@@ -34,7 +34,11 @@ async def get_user(user_id: str):
         data = userdb.find_one({"_id": ObjectId(user_id)})
         if not data:
             raise HTTPException(status_code=404, detail="User not found")
-        return individual_data(data)
+        if user_imgdb.find_one({"uid": str(data["_id"])}):
+            img_status = True
+        else:
+            img_status = False
+        return individual_data(data, img_status)
     except HTTPException:
         raise
     except Exception as e:
@@ -66,14 +70,17 @@ async def login_user(user: LoginUser):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error occurred: {e}")
 
-@urouter.post("/delete/{user_id}")
+@urouter.delete("/delete/{user_id}")
 async def delete_profile(user_id: str):
     try:
         deluser = userdb.find_one({"_id": ObjectId(user_id)})
         if not deluser:
             raise HTTPException(status_code=404, detail="User not found")
-        resp = userdb.delete_one(deluser)
-        return resp
+        for like in user_likedb.find({"uid": str(deluser["_id"])}):
+            user_likedb.delete_one({"_id": like["_id"]})
+        user_imgdb.delete_one({"uid": str(deluser["_id"])})
+        userdb.delete_one(deluser)
+        return {"status": "User deleted successfully"}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error occurred: {e}")
 
@@ -92,5 +99,16 @@ async def get_likes(uid: str):
     try:
         data = list(user_likedb.find({"uid": uid}))
         return all_likes(data)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error occurred: {e}")
+
+@urouter.delete("/likes/{lid}")
+async def delete_like(lid: str):
+    try:
+        del_like = user_likedb.find_one({"_id": ObjectId(lid)})
+        if not del_like:
+            raise HTTPException(status_code=404, detail="Like not found")
+        user_likedb.delete_one({"_id": ObjectId(lid)})
+        return {"status": "Like deleted successfully"}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error occurred: {e}")
