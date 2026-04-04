@@ -36,6 +36,15 @@ def individual_data(user):
         "last_name": user["last_name"]
     }
 
+def user_data(user,img_status):
+    return{
+        "id": str(user["_id"]),
+        "email": user["email"],
+        "first_name": user["first_name"],
+        "last_name": user["last_name"],
+        "img_status": img_status
+    }
+
 def likes_get(like):
     return{
         "id": str(like["_id"]),

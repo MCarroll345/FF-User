@@ -1,0 +1,13 @@
+__pycache__/
+*.pyc
+.env*
+!.env.docker
+.git
+.gitignore
+/tests/__pycache__/
+dist/
+build/
+t-microservice/
+aws-tf/
+k8s-tf/
+keda-tf/
