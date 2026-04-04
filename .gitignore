@@ -5,3 +5,4 @@ venv/
 env-pymongo-fastapi-crud/
 .env
 .env.docker
+*.json
