@@ -21,6 +21,8 @@ async def get_all_users():
 async def create_user(new_user: User):
     try:
         enc_user = new_user.dict()
+        if userdb.find_one({"email": new_user.email}):
+            raise HTTPException(status_code=400, detail="Email already exists")
         enc_user["password"] = bcrypt.hashpw(new_user.password.encode(encoding="utf-8"), encrypt)
         resp = userdb.insert_one(dict(enc_user))
         return individual_data(userdb.find_one({"_id": resp.inserted_id}))
