@@ -9,14 +9,6 @@ import bcrypt
 urouter = APIRouter()
 encrypt = bcrypt.gensalt()
 
-@urouter.get("/users")
-async def get_all_users():
-    try:
-        data = list(userdb.find())
-        return all_users(data)
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error fetching users: {e}")
-
 @urouter.post("/users")
 async def create_user(new_user: User):
     try:
